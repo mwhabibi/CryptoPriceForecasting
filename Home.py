@@ -152,7 +152,7 @@ else:
                 </div>
             """, unsafe_allow_html=True)
 
-            if st.button(f"Analyze {item['Name']}", key=f"btn_{i}", use_container_width=True):
+            if st.button(f"Analyze {item['Name']}", key=f"btn_{i}", width='stretch'):
                  st.session_state['selected_coin'] = item['Ticker']
                  st.switch_page("pages/Detail.py")
 

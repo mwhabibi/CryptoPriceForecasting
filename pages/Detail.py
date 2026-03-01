@@ -106,7 +106,7 @@ with col_header_1:
 
 with col_header_2:
     st.markdown(f"<div style='height: 15px'></div>", unsafe_allow_html=True)  # Spacer
-    if st.button(f"Start Prediction", type="primary", use_container_width=True):
+    if st.button(f"Start Prediction", type="primary", width='stretch'):
         st.switch_page("pages/Prediction.py")
 
 st.divider()
@@ -166,7 +166,7 @@ if not df.empty:
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': True, 'scrollZoom': True})
+    st.plotly_chart(fig, width='stretch', config={'displayModeBar': True, 'scrollZoom': True})
     st.caption(f"Menampilkan data historis dari {start_date} hingga {end_date}. Gunakan mouse untuk zoom dan pan pada grafik.")
 
 else:

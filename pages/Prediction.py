@@ -66,31 +66,43 @@ def load_ml_assets(ticker):
     except Exception as e:
         return None, None
 
-# --- 4. TOP HEADER LAYOUT ---
-col1, col2 = st.columns([3, 1])
-with col1:
+# --- 4. TOP HEADER & METRICS LAYOUT ---
+# Membagi header menjadi 4 kolom untuk mendorong tombol ke ujung kanan
+col_title, col_space, col_btn1, col_btn2 = st.columns([5, 1, 2, 2])
+
+with col_title:
     st.markdown("<div class='header-title'>Prediction Result</div>", unsafe_allow_html=True)
-with col2:
-    st.markdown("<div style='display:flex; justify-content:flex-end; gap:10px;'>", unsafe_allow_html=True)
-    if st.button("❮ Back To Previous"):
+
+with col_btn1:
+    if st.button("❮ Back To Previous", use_container_width=True):
         st.switch_page("pages/Detail.py")
-    if st.button("Re-Analysis (Re-Run)", type="primary"):
+
+with col_btn2:
+    if st.button("Re-Analysis (Re-Run)", type="primary", use_container_width=True):
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Metrics Display
-st.markdown(f"""
-<div class="metric-container">
-    <div>
-        <span class="metric-title">RMSE Score:</span> <span class="metric-value">{coin_metrics['RMSE']:,}</span><br>
+col_m1, col_m2, col_m3 = st.columns([2, 2, 6])
+with col_m1:
+    st.markdown(f"""
+    <div class="metric-container">
+        <span class="metric-title">RMSE Score:</span> <span class="metric-value">{format_price(coin_metrics['RMSE'])}</span><br>
         <span class="metric-sub">Lower is better</span>
     </div>
-    <div style="margin-top: 10px;">
+    """, unsafe_allow_html=True)
+
+with col_m2:
+    st.markdown(f"""
+    <div class="metric-container">
         <span class="metric-title">MAPE Score:</span> <span class="metric-value">{coin_metrics['MAPE']}%</span><br>
         <span class="metric-sub">Average error percentage</span>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+    
+st.markdown("<hr style='border: 1px solid #161B22; margin-top: 5px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+
 
 # --- 5. LOGIKA PREDIKSI (Bypass yfinance bug dengan history period="max") ---
 model, scaler = load_ml_assets(selected_coin)
@@ -165,35 +177,70 @@ with st.spinner("Memproses algoritma LSTM..."):
         current_p = next_p
 
 # --- 6. VISUALISASI CHART (Future Projection) ---
-# Menggabungkan Data Aktual Terakhir & Prediksi untuk Grafik yang Mulus
-plot_dates = list(df.index[-60:]) + future_dates
-plot_prices = list(df['Close'].iloc[-60:]) + future_prices
-
 fig = go.Figure()
-# Garis Harga Asli (Biru Tua)
+
+# 1. Garis Harga Asli (Cyan Terang - Konsisten dengan tema)
 fig.add_trace(go.Scatter(
     x=df.index[-60:], y=df['Close'].iloc[-60:],
-    mode='lines', name='Actual Price', line=dict(color='#4A72B2', width=2)
-))
-# Garis Prediksi (Merah Putus-putus)
-fig.add_trace(go.Scatter(
-    x=[df.index[-1]] + future_dates, y=[df['Close'].iloc[-1]] + future_prices,
-    mode='lines', name='Predicted Price', line=dict(color='#FF4B4B', width=2, dash='dash')
+    mode='lines', name='Harga Asli (Historis)', 
+    line=dict(color='#00FCE7', width=2),
+    fill='tozeroy', fillcolor='rgba(0, 252, 231, 0.05)' # Sedikit efek glow di bawah garis
 ))
 
-fig.update_layout(
-    title=f"{selected_coin} Actual vs. Predicted Prices (Future Projection)",
-    height=400,
-    plot_bgcolor='#E6E6EA', # Background abu-abu terang seperti di mockup
-    paper_bgcolor='#0E1117',
-    font=dict(color='black'),
-    margin=dict(l=10, r=10, t=40, b=10),
-    xaxis=dict(showgrid=True, gridcolor='white'),
-    yaxis=dict(showgrid=True, gridcolor='white', title="Price (USD)"),
-    showlegend=True,
-    legend=dict(x=0.01, y=0.99, bgcolor='rgba(255,255,255,0.8)')
+# 2. Garis Prediksi (Oranye/Emas Putus-putus - Melambangkan Masa Depan)
+fig.add_trace(go.Scatter(
+    x=[df.index[-1]] + future_dates, y=[df['Close'].iloc[-1]] + future_prices,
+    mode='lines+markers', name='Prediksi AI (7 Hari)', 
+    line=dict(color='#E3B341', width=2, dash='dash'),
+    marker=dict(size=6, color='#E3B341')
+))
+
+# 3. Garis Vertikal Penanda "Hari Ini" (Bypass bug internal Plotly)
+# Gambar garis vertikalnya saja (tanpa teks)
+fig.add_vline(
+    x=df.index[-1], 
+    line_width=1.5, line_dash="dash", line_color="#8B949E"
 )
-st.plotly_chart(fig, use_container_width=True)
+
+# Tempelkan teksnya secara independen agar tidak memicu error perhitungan
+fig.add_annotation(
+    x=df.index[-1],
+    y=1,
+    yref="paper",
+    text="Hari Ini (Batas Prediksi) ➔ ",
+    showarrow=False,
+    font=dict(color="white", size=11),
+    xanchor="right",
+    yanchor="top"
+)
+
+# 4. Update Layout (Dark Mode, Bersih, Profesional)
+fig.update_layout(
+    height=450,
+    plot_bgcolor='rgba(0,0,0,0)', # Transparan menyatu dengan background Streamlit
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#8B949E'),
+    margin=dict(l=0, r=0, t=10, b=0),
+    
+    # Grid halus agar tidak berisik
+    xaxis=dict(showgrid=True, gridcolor='#1F2937', zeroline=False),
+    yaxis=dict(
+        showgrid=True, gridcolor='#1F2937', 
+        zeroline=False, tickprefix="$", side='right' # Harga di kanan (standar crypto)
+    ),
+    
+    hovermode="x unified",
+    
+    # Legenda dipindah ke ATAS GRAFIK, dan dibuat transparan agar tidak menutupi apapun
+    legend=dict(
+        orientation="h",
+        yanchor="bottom", y=1.02,
+        xanchor="right", x=1,
+        bgcolor='rgba(0,0,0,0)'
+    )
+)
+
+st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
 
 # --- 7. TABEL PREDIKSI ---
 st.markdown("### Predicted Prices (Next 7 Days)")
