@@ -1,13 +1,12 @@
 import streamlit as st
 import plotly.graph_objects as go
-from utils import get_data_with_indikacators, get_market_summary, format_price, format_big_number, COINS
+from utils import get_data_with_indicators, get_market_summary, format_price, format_big_number, COINS
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 # 1. config & state
 st.set_page_config(
     page_title="Detail Analysis",
-    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
     )
@@ -124,7 +123,7 @@ timeframe_selected = st.radio(
 start_date, end_date = get_start_date(timeframe_selected)
 
 with st.spinner(f"Loading data {timeframe_selected}..."):
-    df = get_data_with_indikacators(selected_coin, start_date, end_date, interval="1d")
+    df = get_data_with_indicators(selected_coin, start_date, end_date, interval="1d")
 
 if not df.empty:
     fig = go.Figure()
@@ -140,8 +139,17 @@ if not df.empty:
         increasing_line_color='#00FF00',
         decreasing_line_color='#FF0000',
     ))
+    
+    # dinamic tick format
+    last_p=df['Close'].iloc[-1]
+    if last_p <0.0000001:
+        dynamic_tick_format = ".12f"
+    elif last_p < 1:
+        dynamic_tick_format = ".8f"
+    else:
+        dynamic_tick_format = ",.2f"
 
-    # update Layout agar bersih dan profesional
+    # update Layout
     fig.update_layout(
         height=500,
         margin=dict(l=0, r=0, t=30, b=0),
@@ -161,6 +169,7 @@ if not df.empty:
             zeroline=False,
             color='#8B949E',
             tickprefix="$",
+            tickformat=dynamic_tick_format,
         ),
         showlegend=False,
         hovermode="x unified",
