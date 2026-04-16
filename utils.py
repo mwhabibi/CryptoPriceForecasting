@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 
 COINS = {
     "BTC-USD": "Bitcoin",
@@ -106,7 +106,7 @@ def get_market_summary():
     return summary_data, fetch_time
 
 @st.cache_data(ttl=3600)
-def get_data_with_indikacators(ticker, start, end, interval):
+def get_data_with_indicators(ticker, start, end, interval):
     """Mengambil data historis dan melakukan feature engineering dengan aman"""
     try:
         # PERBAIKAN MLOps: Gunakan Ticker().history() karena lebih stabil dari download()
@@ -159,3 +159,24 @@ def get_data_with_indikacators(ticker, start, end, interval):
     except Exception as e:
         print(f"Error mengambil data {ticker}: {e}")
         return pd.DataFrame()
+    
+
+@st.cache_data(ttl=3600)
+def prepare_model_input(ticker, lookback=60):
+    """Menyiapkan data khusus untuk input model LSTM di Prediction.py"""
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    # Tarik 1 tahun terakhir agar pasti punya cukup data setelah dropna
+    start_date = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+    
+    df = get_data_with_indicators(ticker, start_date, end_date, interval="1d")
+    
+    if len(df) < lookback:
+        return None, None, None, None
+
+    # Urutan FEATURES harus sama persis dengan training!
+    FEATURES = ['Log_Ret', 'RSI', 'MACD', 'MACD_Signal', 'ATR', 'Volume']
+    recent_data = df[FEATURES].values[-lookback:]
+    last_price = df['Close'].iloc[-1]
+    last_date = df.index[-1]
+    
+    return recent_data, last_price, last_date, FEATURES
