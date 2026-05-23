@@ -1,72 +1,101 @@
-Working Directory Script: /home/syreina/Documents/TA/CryptoPriceForecasting
-Folder Models terdeteksi di: /home/syreina/Documents/TA/CryptoPriceForecasting/models
-Folder Scalers terdeteksi di: /home/syreina/Documents/TA/CryptoPriceForecasting/scalers
-Gambar akan disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel
+Working Directory Script: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting
+Folder Models terdeteksi di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\models
+Folder Scalers terdeteksi di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\scalers
+Gambar akan disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel
+[CONFIG] TEST_START  = 2025-09-01
+[CONFIG] TEST_END    = 2025-09-07 (inklusif)
+[CONFIG] DOWNLOAD_END= 2025-09-08 (eksklusif, untuk yfinance)
+[CONFIG] START_BUFFER= 2025-06-03 (otomatis: TEST_START - 90 hari)
 
 ======================================================================
-MEMULAI PENGUJIAN VALIDASI MODEL (1-21 Jan 2026)
+MEMULAI PENGUJIAN VALIDASI MODEL MULTI-STEP (Prediksi 7 Hari)
 ======================================================================
 
 Analisis Koin: BTC-USD
 Jeda 3 detik agar aman dari blokir Yahoo Finance API...
 Downloading data BTC-USD...
-Melakukan simulasi prediksi...
-HASIL AKHIR (1-21 Jan 2026):
-RMSE    : $1722.5350
-MAE     : $1257.3484
-MAPE    : 1.36%
-AKURASI : 98.64%
-Gambar grafik disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel/BTC-USD_ujicobamodel.png
+Melakukan simulasi prediksi 7 hari ke depan...
+HASIL AKHIR (2025-09-01 s.d 2025-09-07):
+RMSE    : $2353.30399521
+MAE     : $2226.54998372
+MAPE    : 2.01%
+AKURASI : 97.99%
+
+--- KOMPARASI BASELINE (NAIVE FORECAST) ---
+Naive RMSE: $2578.0344161609
+Naive MAPE: 2.2260%
+MODEL LSTM TERBUKTI LEBIH OPTIMAL dibandingkan baseline (Naive).
+Gambar grafik disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel\BTC-USD_ujicobamodel.png
 ----------------------------------------------------------------------
 
 Analisis Koin: ETH-USD
 Jeda 3 detik agar aman dari blokir Yahoo Finance API...
 Downloading data ETH-USD...
-Melakukan simulasi prediksi...
-HASIL AKHIR (1-21 Jan 2026):
-RMSE    : $93.1100
-MAE     : $64.3691
-MAPE    : 2.04%
-AKURASI : 97.96%
-Gambar grafik disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel/ETH-USD_ujicobamodel.png
+Melakukan simulasi prediksi 7 hari ke depan...
+HASIL AKHIR (2025-09-01 s.d 2025-09-07):
+RMSE    : $48.74552558
+MAE     : $35.98935320
+MAPE    : 0.82%
+AKURASI : 99.18%
+
+--- KOMPARASI BASELINE (NAIVE FORECAST) ---
+Naive RMSE: $83.9480165713
+Naive MAPE: 1.9041%
+MODEL LSTM TERBUKTI LEBIH OPTIMAL dibandingkan baseline (Naive).
+Gambar grafik disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel\ETH-USD_ujicobamodel.png
 ----------------------------------------------------------------------
 
 Analisis Koin: DOGE-USD
 Jeda 3 detik agar aman dari blokir Yahoo Finance API...
 Downloading data DOGE-USD...
-Melakukan simulasi prediksi...
-HASIL AKHIR (1-21 Jan 2026):
-RMSE    : $0.0057
-MAE     : $0.0042
-MAPE    : 3.04%
-AKURASI : 96.96%
-Gambar grafik disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel/DOGE-USD_ujicobamodel.png
+Melakukan simulasi prediksi 7 hari ke depan...
+HASIL AKHIR (2025-09-01 s.d 2025-09-07):
+RMSE    : $0.00765601
+MAE     : $0.00588746
+MAPE    : 2.66%
+AKURASI : 97.34%
+
+--- KOMPARASI BASELINE (NAIVE FORECAST) ---
+Naive RMSE: $0.0065022972
+Naive MAPE: 2.1554%
+Model LSTM TIDAK lebih baik dari Naive Forecast.
+Gambar grafik disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel\DOGE-USD_ujicobamodel.png
 ----------------------------------------------------------------------
 
 Analisis Koin: SHIB-USD
 Jeda 3 detik agar aman dari blokir Yahoo Finance API...
 Downloading data SHIB-USD...
-Melakukan simulasi prediksi...
-HASIL AKHIR (1-21 Jan 2026):
-RMSE    : $0.0000
-MAE     : $0.0000
-MAPE    : 4.22%
-AKURASI : 95.78%
-Gambar grafik disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel/SHIB-USD_ujicobamodel.png
+Melakukan simulasi prediksi 7 hari ke depan...
+HASIL AKHIR (2025-09-01 s.d 2025-09-07):
+RMSE    : $0.00000023
+MAE     : $0.00000020
+MAPE    : 1.66%
+AKURASI : 98.34%
+
+--- KOMPARASI BASELINE (NAIVE FORECAST) ---
+Naive RMSE: $0.0000000000
+Naive MAPE: 0.0000%
+Model LSTM TIDAK lebih baik dari Naive Forecast.
+Gambar grafik disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel\SHIB-USD_ujicobamodel.png
 ----------------------------------------------------------------------
 
 Analisis Koin: FLOKI-USD
 Jeda 3 detik agar aman dari blokir Yahoo Finance API...
 Downloading data FLOKI-USD...
-Melakukan simulasi prediksi...
-HASIL AKHIR (1-21 Jan 2026):
-RMSE    : $0.0000
-MAE     : $0.0000
-MAPE    : 5.08%
-AKURASI : 94.92%
-Gambar grafik disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/hasil_ujicobamodel/FLOKI-USD_ujicobamodel.png
+Melakukan simulasi prediksi 7 hari ke depan...
+HASIL AKHIR (2025-09-01 s.d 2025-09-07):
+RMSE    : $0.00000186
+MAE     : $0.00000141
+MAPE    : 1.57%
+AKURASI : 98.43%
+
+--- KOMPARASI BASELINE (NAIVE FORECAST) ---
+Naive RMSE: $0.0000021044
+Naive MAPE: 1.7589%
+MODEL LSTM TERBUKTI LEBIH OPTIMAL dibandingkan baseline (Naive).
+Gambar grafik disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\hasil_ujicobamodel\FLOKI-USD_ujicobamodel.png
 ----------------------------------------------------------------------
 
-✅ File metrik berhasil disimpan di: /home/syreina/Documents/TA/CryptoPriceForecasting/metrics.json
+File metrik berhasil disimpan di: C:\Users\lab fe\Documents\mwh\TA\CryptoPriceForcasting\metrics.json
 
 PENGUJIAN SELESAI.

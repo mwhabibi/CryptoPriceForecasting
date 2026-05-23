@@ -1,22 +1,32 @@
 {
     "BTC-USD": {
-        "RMSE": 1722.53498411,
-        "MAPE": 1.36
+        "LSTM_RMSE": 2353.30399521,
+        "LSTM_MAPE": 2.01,
+        "NAIVE_RMSE": 2578.03441616,
+        "NAIVE_MAPE": 2.23
     },
     "ETH-USD": {
-        "RMSE": 93.10996434,
-        "MAPE": 2.04
+        "LSTM_RMSE": 48.74552558,
+        "LSTM_MAPE": 0.82,
+        "NAIVE_RMSE": 83.94801657,
+        "NAIVE_MAPE": 1.9
     },
     "DOGE-USD": {
-        "RMSE": 0.00574872,
-        "MAPE": 3.04
+        "LSTM_RMSE": 0.00765601,
+        "LSTM_MAPE": 2.66,
+        "NAIVE_RMSE": 0.0065023,
+        "NAIVE_MAPE": 2.16
     },
     "SHIB-USD": {
-        "RMSE": 5.8e-07,
-        "MAPE": 4.22
+        "LSTM_RMSE": 2.3e-07,
+        "LSTM_MAPE": 1.66,
+        "NAIVE_RMSE": 0.0,
+        "NAIVE_MAPE": 0.0
     },
     "FLOKI-USD": {
-        "RMSE": 3.02e-06,
-        "MAPE": 5.08
+        "LSTM_RMSE": 1.86e-06,
+        "LSTM_MAPE": 1.57,
+        "NAIVE_RMSE": 2.1e-06,
+        "NAIVE_MAPE": 1.76
     }
 }

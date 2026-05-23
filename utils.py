@@ -13,11 +13,19 @@ COINS = {
 }
 
 COIN_ICONS = {
-    "BTC-USD": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-    "ETH-USD": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-    "DOGE-USD": "https://s2.coinmarketcap.com/static/img/coins/64x64/74.png",
-    "SHIB-USD": "https://s2.coinmarketcap.com/static/img/coins/64x64/5994.png",
-    "FLOKI-USD": "https://s2.coinmarketcap.com/static/img/coins/64x64/10804.png"
+    "BTC-USD": "https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=029",
+    "ETH-USD": "https://cryptologos.cc/logos/ethereum-eth-logo.png?v=029",
+    "DOGE-USD": "https://cryptologos.cc/logos/dogecoin-doge-logo.png?v=029",
+    "SHIB-USD": "https://cryptologos.cc/logos/shiba-inu-shib-logo.png?v=029",
+    "FLOKI-USD": "https://cryptologos.cc/logos/floki-inu-floki-logo.png?v=029"
+}
+
+COIN_DESCRIPTIONS = {
+    "BTC-USD": "<b>Bitcoin</b> adalah mata uang kripto pertama dan terbesar di dunia. Diciptakan oleh Satoshi Nakamoto, Bitcoin beroperasi tanpa otoritas pusat (bank). Pergerakannya sering menjadi penentu arah seluruh pasar kripto.",
+    "ETH-USD": "<b>Ethereum</b> adalah platform blockchain terdesentralisasi terkemuka yang menjalankan Smart Contracts. Koin dasarnya, Ether (ETH), adalah mata uang terbesar kedua setelah Bitcoin.",
+    "DOGE-USD": "<b>Dogecoin</b> adalah koin meme paling populer yang berawal dari lelucon internet. Pergerakan harganya sangat fluktuatif dan sering kali digerakkan oleh sentimen media sosial atau tokoh publik.",
+    "SHIB-USD": "<b>Shiba Inu</b> adalah token alternatif dari Dogecoin yang berjalan di jaringan Ethereum. Dikenal karena harganya yang sangat murah (pecahan sen) namun memiliki komunitas yang sangat fanatik.",
+    "FLOKI-USD": "<b>Floki</b> adalah koin meme utilitas yang terinspirasi dari nama anjing peliharaan Elon Musk. Koin ini memiliki volatilitas yang sangat tinggi dan pergerakannya sulit diprediksi."
 }
 
 def format_big_number(num):
