@@ -9,15 +9,14 @@ import joblib
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
-import warnings
 import json
+from datetime import datetime, timedelta
 
 metrics_dict = {}
 
 # Matikan peringatan agar terminal bersih
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
-
 
 # SETUP PATH (LOKASI FILE)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +38,6 @@ class DualLogger(object):
         self.log.write(message)      # Tulis ke File
 
     def flush(self):
-        # Dibutuhkan untuk kompatibilitas sistem python
         self.terminal.flush()
         self.log.flush()
 
@@ -54,11 +52,35 @@ print(f"Gambar akan disimpan di: {OUTPUT_DIR}")
 
 # KONFIGURASI
 COINS = ["BTC-USD", "ETH-USD", "DOGE-USD", "SHIB-USD", "FLOKI-USD"]
-START_BUFFER = "2025-10-01"
-TEST_START   = "2026-01-01"
-TEST_END     = "2026-01-21"
-DOWNLOAD_END = "2026-01-25"
 LOOKBACK     = 60
+FORECAST     = 7 # Ditambahkan: Menegaskan bahwa model memprediksi 7 hari ke depan
+
+_test_start_raw = os.environ.get("TEST_START", "2025-09-01")
+_test_end_raw = os.environ.get("TEST_END", "2025-09-07")
+
+from datetime import datetime, timedelta
+_test_start_dt = datetime.strptime(_test_start_raw, "%Y-%m-%d")
+_test_end_dt   = datetime.strptime(_test_end_raw,   "%Y-%m-%d")
+
+# Validasi: test window minimal FORECAST hari
+if (_test_end_dt - _test_start_dt).days + 1 < FORECAST:
+    print(f"WARNING: Rentang uji ({_test_start_raw} → {_test_end_raw}) kurang dari {FORECAST} hari. "
+          f"DOWNLOAD_END disesuaikan otomatis.")
+    _test_end_dt = _test_start_dt + timedelta(days=FORECAST - 1)
+
+# START_BUFFER harus cukup jauh sebelum TEST_START agar ada ≥ LOOKBACK hari trading.
+# Pasar kripto ~365 hari/tahun, tapi untuk keamanan tambah 30 hari buffer kalender
+# (mengantisipasi hari kosong karena data yfinance bisa tidak kontinu).
+_buffer_days   = LOOKBACK + 30
+START_BUFFER   = (_test_start_dt - timedelta(days=_buffer_days)).strftime("%Y-%m-%d")
+TEST_START     = _test_start_raw
+# DOWNLOAD_END = hari setelah test_end agar yfinance memasukkan data hari terakhir (slice eksklusif)
+DOWNLOAD_END   = (_test_end_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+
+print(f"[CONFIG] TEST_START  = {TEST_START}")
+print(f"[CONFIG] TEST_END    = {_test_end_dt.strftime('%Y-%m-%d')} (inklusif)")
+print(f"[CONFIG] DOWNLOAD_END= {DOWNLOAD_END} (eksklusif, untuk yfinance)")
+print(f"[CONFIG] START_BUFFER= {START_BUFFER} (otomatis: TEST_START - {_buffer_days} hari)")
 
 # 1. FUNGSI AMBIL DATA & HITUNG INDIKATOR
 def get_data_with_indicators(ticker, start, end):
@@ -101,7 +123,7 @@ def get_data_with_indicators(ticker, start, end):
 
 # EKSEKUSI PENGUJIAN UTAMA
 print("\n" + "="*70)
-print(f"MEMULAI PENGUJIAN VALIDASI MODEL (1-21 Jan 2026)")
+print(f"MEMULAI PENGUJIAN VALIDASI MODEL MULTI-STEP (Prediksi {FORECAST} Hari)")
 print("="*70)
 
 for ticker in COINS:
@@ -124,87 +146,116 @@ for ticker in COINS:
         # B. AMBIL DATA LENGKAP
         df_full = get_data_with_indicators(ticker, START_BUFFER, DOWNLOAD_END)
         
-        # C. TENTUKAN TANGGAL UJI COBA MODEL PREDIKSI
-        mask = (df_full.index >= TEST_START) & (df_full.index <= TEST_END)
-        test_dates = df_full.loc[mask].index
+        # C. TENTUKAN DATA AKTUAL 7 HARI YANG AKAN DIPREDIKSI
+        mask_future = df_full.index >= TEST_START
+        future_data = df_full.loc[mask_future]
         
-        if len(test_dates) == 0:
-            print("Data kosong pada range tanggal tersebut.")
+        if len(future_data) < FORECAST:
+            print(f"Data masa depan setelah {TEST_START} kurang dari {FORECAST} hari.")
             continue
-
-        actual_prices = []
+            
+        # Mengambil 7 hari (FORECAST) pertama sebagai data Aktual/Real
+        actual_7_days_df = future_data.iloc[:FORECAST]
+        actual_dates = actual_7_days_df.index
+        actual_prices = actual_7_days_df['Close'].values
+        
+        # D. TENTUKAN DATA INPUT 60 HARI (LOOKBACK) SEBELUM TANGGAL PREDIKSI
+        start_idx = df_full.index.get_loc(actual_dates[0])
+        
+        if start_idx < LOOKBACK:
+            print("Data histori sebelum tanggal uji coba kurang dari LOOKBACK (60 hari).")
+            continue
+            
+        input_window = df_full.iloc[start_idx-LOOKBACK : start_idx]
+        features = ['Log_Ret', 'RSI', 'MACD', 'MACD_Signal', 'ATR', 'Volume']
+        input_values = input_window[features].values
+        
+        # E. LAKUKAN PREDIKSI (Satu kali tembak langsung 7 hari)
+        print(f"Melakukan simulasi prediksi 7 hari ke depan...")
+        input_scaled = scaler.transform(input_values)
+        input_reshaped = np.expand_dims(input_scaled, axis=0) # Shape (1, 60, 6)
+        
+        # Model memprediksi 7 nilai log_return yang diskalakan
+        pred_log_ret_scaled = model.predict(input_reshaped, verbose=0)[0] 
+        
+        # F. DENORMALISASI & KONVERSI LOG RETURN KE HARGA ASLI
+        scale_factor = scaler.scale_[0] 
+        min_factor = scaler.min_[0]    
+        pred_log_ret = (pred_log_ret_scaled - min_factor) / scale_factor
+        
         predicted_prices = []
-        dates_plot = []
+        last_close_price = input_window['Close'].iloc[-1]
+        current_price = last_close_price
         
-        print(f"Melakukan simulasi prediksi...")
+        for lr in pred_log_ret:
+            current_price = current_price * np.exp(lr) # Ubah log return menjadi harga secara kumulatif
+            predicted_prices.append(current_price)
+            
+        predicted_prices = np.array(predicted_prices)
+
+        # G. HITUNG ERROR UNTUK RENTANG 7 HARI INI
+        rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
+        mae = mean_absolute_error(actual_prices, predicted_prices)
+        mape = mean_absolute_percentage_error(actual_prices, predicted_prices)
+        accuracy = 100 * (1 - mape)
         
-        # D. LOOP PREDIKSI HARIAN
-        for date in test_dates:
-            idx = df_full.index.get_loc(date)
-            
-            if idx < LOOKBACK:
-                continue
-            
-            input_window = df_full.iloc[idx-LOOKBACK : idx]
-            features = ['Log_Ret', 'RSI', 'MACD', 'MACD_Signal', 'ATR', 'Volume']
-            input_values = input_window[features].values
-            
-            input_scaled = scaler.transform(input_values)
-            input_reshaped = np.expand_dims(input_scaled, axis=0)
-            
-            pred_log_ret_scaled = model.predict(input_reshaped, verbose=0)[0][0]
-            
-            scale_factor = scaler.scale_[0] 
-            min_factor = scaler.min_[0]    
-            pred_log_ret = (pred_log_ret_scaled - min_factor) / scale_factor
-            
-            last_close_price = input_window['Close'].iloc[-1]
-            pred_price = last_close_price * np.exp(pred_log_ret)
-            
-            actual_price = df_full.loc[date, 'Close']
-            
-            dates_plot.append(date)
-            actual_prices.append(actual_price)
-            predicted_prices.append(pred_price)
-
-        # E. HITUNG ERROR
-        if len(actual_prices) > 0:
-            rmse = np.sqrt(mean_squared_error(actual_prices, predicted_prices))
-            mae = mean_absolute_error(actual_prices, predicted_prices)
-            mape = mean_absolute_percentage_error(actual_prices, predicted_prices)
-            accuracy = 100 * (1 - mape)
-            
-            print(f"HASIL AKHIR (1-21 Jan 2026):")
-            print(f"RMSE    : ${rmse:.4f}")
-            print(f"MAE     : ${mae:.4f}")
-            print(f"MAPE    : {mape:.2%}")
-            print(f"AKURASI : {accuracy:.2f}%")
-
-            metrics_dict[ticker] = {
-                "RMSE": round(float(rmse), 8),
-                "MAPE": round(float(mape * 100), 2)
-            }
-
-            plt.figure(figsize=(12, 6))
-            plt.plot(dates_plot, actual_prices, label='Actual (Real)', color='green', marker='o')
-            plt.plot(dates_plot, predicted_prices, label='Predicted (AI)', color='red', linestyle='--', marker='x')
-            plt.title(f"{ticker} - Validasi Model ({TEST_START} s.d {TEST_END})")
-            plt.xlabel("Tanggal")
-            plt.ylabel("Harga (USD)")
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-            # plt.show()
-
-            filename = f"{ticker}_ujicobamodel.png"
-            filepath = os.path.join(OUTPUT_DIR, filename)
-            plt.savefig(filepath)
-            print(f"Gambar grafik disimpan di: {filepath}")
-            plt.close()
-            
+        print(f"HASIL AKHIR ({actual_dates[0].strftime('%Y-%m-%d')} s.d {actual_dates[-1].strftime('%Y-%m-%d')}):")
+        print(f"RMSE    : ${rmse:.8f}")
+        print(f"MAE     : ${mae:.8f}")
+        print(f"MAPE    : {mape:.2%}")
+        print(f"AKURASI : {accuracy:.2f}%")
+        
+        # Naive Forecast untuk melakukan komparasi hasil prediksi model LSTM
+        naive_predictions = np.full(FORECAST, last_close_price)
+        
+        naive_rmse = np.sqrt(mean_squared_error(actual_prices, naive_predictions))
+        naive_mape = mean_absolute_percentage_error(actual_prices, naive_predictions)
+        
+        print(f"\n--- KOMPARASI BASELINE (NAIVE FORECAST) ---")
+        print(f"Naive RMSE: ${naive_rmse:.10f}")
+        print(f"Naive MAPE: {naive_mape:.4%}")
+        
+        if mape < naive_mape:
+            print("MODEL LSTM TERBUKTI LEBIH OPTIMAL dibandingkan baseline (Naive).")
         else:
-            print("Tidak ada data prediksi yang dihasilkan.")
+            print("Model LSTM TIDAK lebih baik dari Naive Forecast.")
+
+        metrics_dict[ticker] = {
+            "LSTM_RMSE": round(float(rmse), 8),
+            "LSTM_MAPE": round(float(mape * 100), 2),
+            "NAIVE_RMSE": round(float(naive_rmse), 8),
+            "NAIVE_MAPE": round(float(naive_mape * 100), 2),
+        }
+
+        # H. VISUALISASI GRAFIK
+        plt.figure(figsize=(12, 6))
+        
+        # Tambahkan 14 hari data historis agar grafik tidak cuma isi 7 titik saja
+        history_plot_days = 14
+        historical_dates = input_window.index[-history_plot_days:]
+        historical_prices = input_window['Close'].iloc[-history_plot_days:]
+        
+        plt.plot(historical_dates, historical_prices, label='History', color='blue', marker='.')
+        plt.plot(actual_dates, actual_prices, label='Actual (Real)', color='green', marker='o')
+        plt.plot(actual_dates, predicted_prices, label='Predicted 7-Days (AI)', color='red', linestyle='--', marker='x')
+        
+        # Garis penghubung titik historis terakhir ke titik pertama (biar estetik tidak terputus)
+        plt.plot([historical_dates[-1], actual_dates[0]], [historical_prices.iloc[-1], actual_prices[0]], color='green')
+        plt.plot([historical_dates[-1], actual_dates[0]], [historical_prices.iloc[-1], predicted_prices[0]], color='red', linestyle='--')
+
+        plt.title(f"{ticker} - Validasi Model Multi-Step 7 Hari\n({actual_dates[0].strftime('%Y-%m-%d')} s.d {actual_dates[-1].strftime('%Y-%m-%d')})")
+        plt.xlabel("Tanggal")
+        plt.ylabel("Harga (USD)")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        filename = f"{ticker}_ujicobamodel.png"
+        filepath = os.path.join(OUTPUT_DIR, filename)
+        plt.savefig(filepath)
+        print(f"Gambar grafik disimpan di: {filepath}")
+        plt.close()
         
         print("-" * 70)
 
@@ -213,9 +264,10 @@ for ticker in COINS:
         import traceback
         traceback.print_exc()
 
+# I. SIMPAN METRIK
 metrics_path = os.path.join(BASE_DIR, 'metrics.json')
 with open(metrics_path, 'w') as f:
     json.dump(metrics_dict, f, indent=4)
-print(f"\n✅ File metrik berhasil disimpan di: {metrics_path}")
+print(f"\nFile metrik berhasil disimpan di: {metrics_path}")
 
 print("\nPENGUJIAN SELESAI.")
