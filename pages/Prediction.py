@@ -19,7 +19,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent  # …/pages/../  = project ro
 # ─── 1. CONFIG & STATE ────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Hasil Prediksi AI",
-    page_icon="🔮",
+    page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

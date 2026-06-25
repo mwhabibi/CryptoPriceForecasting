@@ -5,7 +5,7 @@ from utils import get_market_summary, format_big_number, format_price
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Prediksi Harga Kripto",
-    page_icon="🔮",
+    page_icon="📈",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
