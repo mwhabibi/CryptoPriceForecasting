@@ -437,7 +437,7 @@ with col_home:
 # ─── HERO ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="doc-hero">
-    <div class="hero-badge"><span class="dot"></span>Dokumentasi Teknis &amp; Akademis · CryptoLens</div>
+    <div class="hero-badge"><span class="dot"></span>Dokumentasi Teknis &amp; Akademis</div>
     <h1>Dokumentasi Model <span>LSTM</span></h1>
     <p class="doc-hero-sub">
         Halaman ini mendokumentasikan seluruh proses pengembangan model prediksi harga kripto —
@@ -449,7 +449,7 @@ st.markdown("""
     <div class="hero-toc">
         <span class="toc-pill"><span class="toc-num">1</span>Proses Trainning</span>
         <span class="toc-pill"><span class="toc-num">2</span>Arsitektur</span>
-        <span class="toc-pill"><span class="toc-num">3</span>EDA</span>
+        <span class="toc-pill"><span class="toc-num">3</span>Dataset</span>
         <span class="toc-pill"><span class="toc-num">4</span>Grafik Training</span>
         <span class="toc-pill"><span class="toc-num">5</span>Evaluasi</span>
         <span class="toc-pill" style="border-color:rgba(0,229,160,0.3);color:var(--green);">
@@ -464,7 +464,7 @@ metrics_data = load_metrics()
 
 # ─── TABS ─────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "① Proses Trainning", "② Arsitektur", "③ Data EDA",
+    "① Proses Trainning", "② Arsitektur", "③ Dataset",
     "④ Grafik Training", "⑤ Evaluasi", "⚡ Uji Coba Model",
 ])
 
@@ -695,23 +695,23 @@ with tab2:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — DATA EDA
+# TAB 3 — DATASET
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-header">③ Eksplorasi &amp; Visualisasi Data (EDA)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">③ Dataset</div>', unsafe_allow_html=True)
     if VIS_DATA_PATH.exists():
         try:
-            img_eda = Image.open(VIS_DATA_PATH)
+            img_dataset = Image.open(VIS_DATA_PATH)
             st.markdown("""
             <div class="info-box">
                 <div class="info-icon">📊</div>
                 <div>
                     <div class="info-title">Visualisasi Data Historis &amp; Distribusi Fitur</div>
-                    <div class="info-text">EDA mencakup visualisasi distribusi harga, korelasi antar fitur teknikal, dan analisis stasioneritas time-series sebagai dasar pemilihan fitur input LSTM.</div>
+                    <div class="info-text">Dataset mencakup visualisasi dari dataset yang digunakan sebagai fitur input LSTM.</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            st.image(img_eda, use_container_width=True)
+            st.image(img_dataset, use_container_width=True)
         except Exception as e:
             st.warning(f"Gagal memuat visualisasi-data.png: {e}")
     else:
@@ -1256,10 +1256,6 @@ with tab6:
                             """, unsafe_allow_html=True)
 
                 # ── Bar Chart Komparasi ──
-                # ══════════════════════════════════════════════════════════════
-                # FIX BARIS 1032: ax_style TIDAK boleh mengandung showgrid karena
-                # akan di-override per-axis. Pisahkan base style dari grid config.
-                # ══════════════════════════════════════════════════════════════
                 st.markdown('<div class="section-header">📈 Visualisasi Komparasi LSTM vs Naive</div>', unsafe_allow_html=True)
 
                 tickers    = [r["meta"]["ticker"] for r in results]
@@ -1411,7 +1407,7 @@ st.markdown("""
 <div class="footer">
     <div class="footer-col">
         <div class="footer-label">📁 Struktur File</div>
-        <div class="footer-text">models/ → .keras per aset<br>scalers/ → .pkl MinMaxScaler<br>metrics.json → skor evaluasi<br>Training/Documentation/ → grafik &amp; EDA<br>hasil_ujicobamodel/ → output validasi</div>
+        <div class="footer-text">models/ → .keras per aset<br>scalers/ → .pkl MinMaxScaler<br>metrics.json → skor evaluasi<br>Training/Documentation/ → grafik &amp; Dataset<br>hasil_ujicobamodel/ → output validasi</div>
     </div>
     <div class="footer-col">
         <div class="footer-label">⚙️ Stack Teknologi</div>

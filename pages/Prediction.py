@@ -435,7 +435,7 @@ current_p     = last_price
 for i, log_r in enumerate(pred_log_ret):
     next_p  = current_p * np.exp(log_r)
     change  = ((next_p - current_p) / current_p) * 100
-    abs_chg = next_p - last_price    # vs harga awal
+    abs_chg = next_p - last_price
 
     future_prices.append(next_p)
     changes_pct.append(change)
